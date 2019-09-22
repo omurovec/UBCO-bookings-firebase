@@ -1,0 +1,9 @@
+{
+    "headers": {
+        "Accept": "*/*",
+        "Cache-Control": "no-cache",
+        "Accept-Encoding": "gzip, deflate",
+        "Connection": "keep-alive",
+        "cache-control": "no-cache"
+    }
+}
