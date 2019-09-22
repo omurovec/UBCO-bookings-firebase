@@ -2,7 +2,7 @@
 
 Firebase functions for the UBCO Studyroom Booking App
 
-##Testing
+## Testing
 Install dependancies
 
 ```bash
@@ -31,7 +31,7 @@ firebase deploy --only functions
 firebase emulators:start --only functions
 ```
 
-##Contributing
+## Contributing
 Pull requests are welcome and encouraged. For major changes please open an issue first to discuss your ideas.
 
 ## License
