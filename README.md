@@ -20,7 +20,7 @@ firebase login
 firebase use MY_PROJECT
 ```
 
-You're now all setup!
+#### You're all setup now!
 
 note: The firebase spark plan does not allow for outgoing
 requests which this project relies on however you can still
