@@ -14,7 +14,7 @@ Sign into the Firebase console and create a new project.
 
 Use the firebase cli to login and link the project you made
 
-```javascript
+```bash
 firebase login
 //login with your firebase credentials
 firebase use MY_PROJECT
