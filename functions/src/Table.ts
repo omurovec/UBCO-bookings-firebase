@@ -53,7 +53,11 @@ export default class Table {
                     if (data.classNames.includes("new")) {
                         this.data[rowInd][colInd + offset] = { free: true };
                     } else {
-                        for (let i = 0; i < data.attributes["rowspan"]; i++) {
+                        let length = data.attributes["rowspan"];
+                        if(!length) {
+                            length = 1;
+                        }
+                        for (let i = 0; i < length; i++) {
                             this.data[rowInd + i][colInd + offset] = {
                                 free: false,
                                 bookingID: data.querySelector("div").attributes[
@@ -105,8 +109,10 @@ export default class Table {
     }
 
     printTable() {
+        // tslint:disable-next-line: prefer-for-of
         for (let x = 0; x < this.data.length; x++) {
             let row = "";
+            // tslint:disable-next-line: prefer-for-of
             for (let y = 0; y < this.data[x].length; y++) {
                 if (this.data[x][y]) {
                     if (this.data[x][y].free === true) {
