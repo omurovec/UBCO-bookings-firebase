@@ -42,12 +42,10 @@ export const fetchSchedule = functions.https.onRequest(
 					});
 				});
 		} catch (err) {
-			response
-				.status(400)
-				.send({
-					success: false,
-					data: "Error fetching areas"
-				});
+			response.status(400).send({
+				success: false,
+				data: "Error fetching areas"
+			});
 		}
 	}
 );
@@ -65,23 +63,22 @@ export const bookSlot = functions.https.onRequest(
 				//Get the booking ID for future deletion
 				const id = await getBookingID(request.body);
 				//Add booking to firestore with booking ID
-				await addBooking({ ...request, bookingID: id });
+				await addBooking({
+					...request.body,
+					bookingID: id
+				});
 				response.status(200).send({ success: true });
 			} catch (err) {
-				response
-					.status(400)
-					.send({
-						success: false,
-						data: "Error booking slot"
-					});
+				response.status(400).send({
+					success: false,
+					data: "Error booking slot"
+				});
 			}
 		} else {
-			response
-				.status(400)
-				.send({
-					success: false,
-					data: "Invalid login credentials"
-				});
+			response.status(400).send({
+				success: false,
+				data: "Invalid login credentials"
+			});
 		}
 	}
 );
@@ -95,7 +92,7 @@ export const cancelSlot = functions.https.onRequest(
 			deleteBooking(session, request.body)
 				.then(async () => {
 					//Delete booking from firestore
-					await delBooking(request.body.bookingID);
+					await delBooking(request.body);
 					response.status(200).send({
 						success: true
 					});
@@ -107,12 +104,10 @@ export const cancelSlot = functions.https.onRequest(
 					});
 				});
 		} else {
-			response
-				.status(400)
-				.send({
-					success: false,
-					data: "Invalid login credentials"
-				});
+			response.status(400).send({
+				success: false,
+				data: "Invalid login credentials"
+			});
 		}
 	}
 );
