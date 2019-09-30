@@ -21,7 +21,9 @@ export const addBooking = booking =>
 			area: booking.area,
 			roomID: booking.roomID,
 			title: booking.title,
-			description: booking.description
+			description: booking.description,
+			roomName: booking.roomName,
+			areaName: booking.areaName
 		});
 
 //Delete booking from firestore
