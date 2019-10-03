@@ -291,7 +291,6 @@ export const login = acc => {
 //Post booking to UBCO site
 export const postBooking = (request, session, form) =>
     new Promise(resolve => {
-        resolve();
         const options = {
             method: "POST",
             hostname: "bookings.ok.ubc.ca",
