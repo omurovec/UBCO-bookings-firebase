@@ -57,9 +57,15 @@ export const bookSlot = functions.https.onRequest(
 		if (session.success) {
 			try {
 				//Fetch form
-				const form = await getBookingForm(session.cookie);
+				const form: any = await getBookingForm(
+					session.cookie
+				);
 				//Add request info to form and post to /studyrooms
-				await postBooking(request.body, session, form);
+				await postBooking(
+					request.body,
+					session,
+					form.formData
+				);
 				//Get the booking ID for future deletion
 				const id = await getBookingID(request.body);
 				//Add booking to firestore with booking ID
