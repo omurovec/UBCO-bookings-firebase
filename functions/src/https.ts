@@ -104,6 +104,7 @@ export const cancelSlot = functions.https.onRequest(
 					});
 				})
 				.catch(err => {
+					console.log(err);
 					response.status(400).send({
 						success: false,
 						data: "Error deleting booking"
