@@ -296,6 +296,7 @@ export const postBooking = (request, session, form) =>
             hostname: "bookings.ok.ubc.ca",
             path: "/studyrooms/edit_entry_handler.php",
             headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
                 ...config.headers,
                 Cookie: cookieStripper(session.cookie),
                 Referer:
@@ -354,8 +355,9 @@ export const deleteBooking = (session, booking) =>
         const options = {
             method: "POST",
             hostname: "bookings.ok.ubc.ca",
-            path: "/studyrooms/edit_entry_handler.php",
+            path: "/studyrooms/del_entry.php",
             headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
                 ...config.headers,
                 Cookie: cookieStripper(session.cookie),
                 Referer:
