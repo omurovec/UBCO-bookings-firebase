@@ -13,6 +13,7 @@ export const addBooking = booking =>
 		.collection("bookings")
 		.doc(booking.bookingID)
 		.set({
+			id: booking.bookingID,
 			year: booking.year,
 			month: booking.month,
 			day: booking.day,
@@ -32,11 +33,11 @@ export const delBooking = booking =>
 		.collection("users")
 		.doc(booking.phone)
 		.collection("bookings")
-		.doc(booking.bookingID)
+		.doc(booking.id)
 		.delete();
 
 export const createUser = user =>
 	db
 		.collection("users")
 		.doc(user.phoneNumber)
-		.set(user);
+		.set({ phone: user.phoneNumber });
