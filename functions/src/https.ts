@@ -1,5 +1,4 @@
 import * as functions from "firebase-functions";
-import { addBooking, delBooking } from "./firestore";
 import {
 	login,
 	fetchAreas,
@@ -7,7 +6,6 @@ import {
 	getBookingForm,
 	postBooking,
 	deleteBooking,
-	getBookingID,
 	fetchBooked
 } from "./sitemap";
 
@@ -67,8 +65,6 @@ export const bookSlot = functions.https.onRequest(
 					session,
 					form.formData
 				);
-				//Get the booking ID for future deletion
-				const id = await getBookingID(request.body);
 				response.status(200).send({ success: true });
 			} catch (err) {
 				response.status(400).send({

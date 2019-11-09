@@ -389,45 +389,6 @@ export const deleteBooking = (session, booking) =>
         req.end();
     });
 
-//Fetch the booking ID from UBCO site
-export const getBookingID = booking =>
-    new Promise(resolve => {
-        const options = {
-            method: "GET",
-            hostname: "bookings.ok.ubc.ca",
-            path:
-                "/studyrooms/day.php?" +
-                qs.stringify({
-                    year: booking.year,
-                    month: booking.month,
-                    day: booking.day,
-                    area: booking.area
-                }),
-            headers: {
-                ...config.headers
-            }
-        };
-        https
-            .request(options, resp => {
-                let data = "";
-                resp.on("data", chunk => {
-                    data += chunk;
-                });
-                resp.on("end", () => {
-                    const table = new Table(
-                        ((parse(data) as unknown) as HTMLElement).querySelector(
-                            "#day_main"
-                        )
-                    );
-                    resolve(
-                        table.getID(booking.roomID, Number(booking.startTime))
-                    );
-                });
-            })
-            .end();
-    });
-
-
 export const fetchBooked = (request) => 
 new Promise((resolve) => {
     const options = {
@@ -487,7 +448,9 @@ new Promise((resolve) => {
         from_month: request.month,
         from_year: request.year,
         to_day: request.day,
+        // tslint:disable-next-line: triple-equals
         to_month: request.month==12?1:request.month+1,
+        // tslint:disable-next-line: triple-equals
         to_year: request.month==12?request.year+1:request.year,
         
     }))
