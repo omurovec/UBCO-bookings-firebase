@@ -266,8 +266,9 @@ export const login = acc => {
 
             res.on("end", () => {
                 resolve({
-                    success: res.headers.location !== null,
-                    cookie: res.headers["set-cookie"]
+                    success: res.headers.location !== undefined,
+                    cookie: res.headers["set-cookie"],
+                    csrf: session.csrf
                 });
             });
         });
@@ -425,3 +426,71 @@ export const getBookingID = booking =>
             })
             .end();
     });
+
+
+export const fetchBooked = (request) => 
+new Promise((resolve) => {
+    const options = {
+        method: "POST",
+        hostname: "bookings.ok.ubc.ca",
+        path: "/studyrooms/report.php",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            ...config.headers,
+            Cookie: cookieStripper(request.cookie)
+        }
+    }
+
+    const req = https.request(options, resp => {
+        let data = "";
+        resp.on("data", chunk => {
+            data += chunk;
+        })
+
+        resp.on("end", () => {
+            console.log(JSON.stringify(request))
+            resolve({success: true, data: JSON.parse(data).aaData.map(booking => {
+                const aElem = ((parse(booking[0]) as unknown) as HTMLElement).querySelector("a");
+                const startTimeDate = booking[3].substring(booking[3].indexOf("</span>")+7);
+                return {
+                    id: aElem.attributes["data-id"],
+                    title: aElem.attributes["title"],
+                    startTime: startTimeDate.substring(0, startTimeDate.indexOf(" -")),
+                    date: startTimeDate.substring(startTimeDate.indexOf("-")+2),
+                    span: (((parse(booking[5]) as unknown) as HTMLElement).querySelector("span").attributes as any).title/3600,
+                    areaName: booking[1],
+                    roomName: booking[2],
+                    description: booking[6],
+                }
+        })})
+        })
+    })
+
+    req.write(qs.stringify({
+        ajax: 1,
+        areamatch: "",
+        creatormatch: "",
+        csrf_token: request.csrf,
+        datatable: 1,
+        descrmatch: "",
+        match_confirmed: 2,
+        match_email: "",
+        match_phone: "",
+        match_private: 2,
+        namematch: "",
+        output: 0,
+        output_format: 0,
+        phase: 2,
+        roommatch: "",
+        sortby: "r",
+        from_day: request.day,
+        from_month: request.month,
+        from_year: request.year,
+        to_day: request.day,
+        to_month: request.month==12?1:request.month+1,
+        to_year: request.month==12?request.year+1:request.year,
+        
+    }))
+
+    req.end();
+});

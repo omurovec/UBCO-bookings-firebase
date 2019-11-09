@@ -7,7 +7,8 @@ import {
 	getBookingForm,
 	postBooking,
 	deleteBooking,
-	getBookingID
+	getBookingID,
+	fetchBooked
 } from "./sitemap";
 
 export const testCredentials = functions.https.onRequest(
@@ -68,11 +69,6 @@ export const bookSlot = functions.https.onRequest(
 				);
 				//Get the booking ID for future deletion
 				const id = await getBookingID(request.body);
-				//Add booking to firestore with booking ID
-				await addBooking({
-					...request.body,
-					bookingID: id
-				});
 				response.status(200).send({ success: true });
 			} catch (err) {
 				response.status(400).send({
@@ -97,8 +93,6 @@ export const cancelSlot = functions.https.onRequest(
 			//Cancel booking on UBCO's site
 			deleteBooking(session, request.body)
 				.then(async () => {
-					//Delete booking from firestore
-					await delBooking(request.body);
 					response.status(200).send({
 						success: true
 					});
@@ -115,6 +109,24 @@ export const cancelSlot = functions.https.onRequest(
 				success: false,
 				data: "Invalid login credentials"
 			});
+		}
+	}
+);
+
+export const getBooked = functions.https.onRequest(
+	async (request, response) => {
+		const session: any = await login(request.body);
+		if (session.success) {
+			fetchBooked({ ...session, ...request.body })
+				.then(res => {
+					response.status(200).send(res);
+				})
+				.catch(err => {
+					console.log(err);
+					response.status(400).send({ success: false });
+				});
+		} else {
+			response.status(400).send({ success: false });
 		}
 	}
 );
