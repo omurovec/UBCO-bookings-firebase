@@ -60,12 +60,12 @@ export const bookSlot = functions.https.onRequest(
 					session.cookie
 				);
 				//Add request info to form and post to /studyrooms
-				await postBooking(
+				const result = await postBooking(
 					request.body,
 					session,
 					form.formData
 				);
-				response.status(200).send({ success: true });
+				response.status(200).send(result);
 			} catch (err) {
 				response.status(400).send({
 					success: false,

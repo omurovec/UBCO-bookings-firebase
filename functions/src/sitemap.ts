@@ -332,8 +332,12 @@ export const postBooking = (request, session, form) =>
 
 			res.on("end", () => {
 				resolve({
-					headers: res.headers,
-					body: chunks
+					success:
+						((parse(
+							chunks
+						) as unknown) as HTMLElement).querySelector(
+							"h1"
+						) === null
 				});
 			});
 		});
