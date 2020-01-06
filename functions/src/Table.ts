@@ -103,7 +103,7 @@ export default class Table {
 				}
 			}
 		} catch (err) {
-			return null;
+			return [];
 		}
 		return slots;
 	}
