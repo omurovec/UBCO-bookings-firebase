@@ -16,6 +16,7 @@ export const testCredentials = functions.https.onRequest(
 				response.status(200).send(res);
 			})
 			.catch(err => {
+				console.warn(err);
 				response.status(400).send({ success: false });
 			});
 	}
@@ -35,12 +36,14 @@ export const fetchSchedule = functions.https.onRequest(
 					});
 				})
 				.catch(err => {
+					console.warn(err);
 					response.status(400).send({
 						success: false,
 						data: "Error fetching bookings"
 					});
 				});
 		} catch (err) {
+			console.warn(err);
 			response.status(400).send({
 				success: false,
 				data: "Error fetching areas"
@@ -67,12 +70,14 @@ export const bookSlot = functions.https.onRequest(
 				);
 				response.status(200).send(result);
 			} catch (err) {
+				console.warn(err);
 				response.status(400).send({
 					success: false,
 					data: "Error booking slot"
 				});
 			}
 		} else {
+			console.log("Invalid Login Credentials");
 			response.status(400).send({
 				success: false,
 				data: "Invalid login credentials"
@@ -84,6 +89,7 @@ export const bookSlot = functions.https.onRequest(
 export const cancelSlot = functions.https.onRequest(
 	async (request, response) => {
 		//Login to get session
+		console.log(JSON.stringify(request.body));
 		const session: any = await login(request.body);
 		if (session.success) {
 			//Cancel booking on UBCO's site
@@ -94,13 +100,14 @@ export const cancelSlot = functions.https.onRequest(
 					});
 				})
 				.catch(err => {
-					console.log(err);
+					console.warn(err);
 					response.status(400).send({
 						success: false,
 						data: "Error deleting booking"
 					});
 				});
 		} else {
+			console.log("Invalid login credentials");
 			response.status(400).send({
 				success: false,
 				data: "Invalid login credentials"
@@ -112,17 +119,22 @@ export const cancelSlot = functions.https.onRequest(
 export const getBooked = functions.https.onRequest(
 	async (request, response) => {
 		const session: any = await login(request.body);
+		console.log(JSON.stringify(session));
 		if (session.success) {
 			fetchBooked({ ...session, ...request.body })
 				.then(res => {
 					response.status(200).send(res);
 				})
 				.catch(err => {
-					console.log(err);
+					console.warn(err);
 					response.status(400).send({ success: false });
 				});
 		} else {
-			response.status(400).send({ success: false });
+			console.log("Invalid login credentials");
+			response.status(400).send({
+				success: false,
+				data: "Invalid login credentials"
+			});
 		}
 	}
 );
