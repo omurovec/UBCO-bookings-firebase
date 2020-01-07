@@ -494,10 +494,10 @@ export const fetchBooked = request =>
 				to_day: request.day,
 				// tslint:disable-next-line: triple-equals
 				to_month:
-					request.month == 12 ? 1 : request.month + 1,
+					request.month === 12 ? 1 : request.month + 1,
 				// tslint:disable-next-line: triple-equals
 				to_year:
-					request.month == 12
+					request.month === 12
 						? request.year + 1
 						: request.year
 			})
