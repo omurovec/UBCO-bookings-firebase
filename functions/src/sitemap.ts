@@ -24,8 +24,12 @@ const getSession = new Promise(resolve => {
 		let chunks = "";
 
 		res.on("data", (chunk: string) => {
-			chunks += chunk;
+			  chunks += chunk;
 		});
+
+    res.on("error", () => {
+        throw new Error( "Error connecting to UBCO's servers" );
+    })
 
 		res.on("end", () => {
 			resolve({
@@ -114,6 +118,7 @@ export const getBookingForm = cookie => {
 			}
 		};
 
+      //Initialize request to UBCO's site
 		const req = https.request(options, res => {
 			let chunks = "";
 
@@ -125,17 +130,22 @@ export const getBookingForm = cookie => {
 				const body = (parse(
 					chunks
 				) as unknown) as HTMLElement;
+          //Return form info for creating a booking
 				resolve({
 					cookie: cookie,
 					formData: {
+              //<meta name="csrf_token" content="1b7a72065ee234279ada41baf4a04d37afbf7c9c68b1e59faee8fd68282d306b">
 						csrf_token: (body.querySelector(
 							`[name="csrf_token"]`
 						).attributes as any).content,
+              //<input type="hidden" name="edit_type" value="series">
 						editType: body.querySelector(
 							`[name="edit_type"]`
 						).attributes["value"],
+              //<input type="hidden" name="rep_id" value="0">
 						repID: body.querySelector(`[name="rep_id"]`)
 							.attributes["value"],
+              //<input type="hidden" name="returl" value="https://bookings.ok.ubc.ca/studyrooms/day.php?...">
 						returl: body.querySelector(`[name="returl"]`)
 							.attributes["value"],
 						type: "G" //No option for workshop ("W") on app
@@ -148,9 +158,9 @@ export const getBookingForm = cookie => {
 	});
 };
 
-//Find all areas to book at UBCO
+//Find all areas available to book at UBCO
 export const fetchAreas = input => {
-	const path = "/studyrooms/day.php?" + qs.stringify(input);
+  const path = "/studyrooms/day.php?" + qs.stringify(input);
 	return new Promise(resolve => {
 		const options = {
 			method: "GET",
@@ -161,6 +171,7 @@ export const fetchAreas = input => {
 			}
 		};
 
+      //Initialize request to get list of available areas
 		https
 			.request(options, resp => {
 				let data = "";
@@ -171,19 +182,22 @@ export const fetchAreas = input => {
 
 				resp.on("end", () => {
 					resolve({
+            // Return elements in areas list
+            // EXAMPLE ELEMENT: <option value="5">Commons: Floor 0</option>
 						areas: (((parse(
 							data
 						) as unknown) as HTMLElement).querySelector(
 							"#area_select"
 						).childNodes as any)
-							.filter(child => child.attributes)
-							.map(child => {
-								return {
-									name: child.text,
-									id: child.attributes.value
-								};
-							}),
-						path: path,
+              // Remove elements without a room ID
+						      .filter(( child: {attributes?: {}} ) => child.attributes)
+                  .map(( child: {text: string, attributes: {value: string}} ) => ({
+                      // name: 'Commons: Floor 0'
+                      // id: 5
+                        name: child.text,
+                        id: child.attributes.value
+                    })),
+						  path: path,
 						...input
 					});
 				});
@@ -193,8 +207,8 @@ export const fetchAreas = input => {
 };
 
 //Get list of current bookings
-export const fetchBookings = req => {
-	return new Promise((_resolve, _reject) => {
+export const fetchBookings = req => new Promise((_resolve, _reject) => {
+      // Fetch all rooms for each area
 		const fetchRoom = req.areas.map(area => {
 			return new Promise(resolve => {
 				const options = {
@@ -212,6 +226,7 @@ export const fetchBookings = req => {
 							data += chunk;
 						});
 						resp.on("end", () => {
+                // Resolve promise with area info and html table schedule
 							resolve({
 								area: area,
 								html: ((parse(
@@ -226,19 +241,17 @@ export const fetchBookings = req => {
 			});
 		});
 
-		//Fetch all areas and parse data from the tables
+		// Trigger all promises and parse data from each html table
 		Promise.all(fetchRoom)
 			.then(areas =>
 				areas.map(
 					(area: { html: HTMLElement; area: any }) => {
+              // Create Table object with the html table
 						const table = new Table(area.html);
+              // Return area and available slots
 						return {
 							...area.area,
-							slots: table.getSlots(
-								typeof req.time === "number"
-									? req.time
-									: Number(req.time)
-							)
+							slots: table.getSlots(Number(req.time))
 						};
 					}
 				)
@@ -250,11 +263,11 @@ export const fetchBookings = req => {
 				_reject(err);
 			});
 	});
-};
 
 //Login with Novell credentials and return session cookie
 export const login = acc => {
 	return new Promise(async resolve => {
+      //Retrieve session for login
 		const session = (await getSession) as Session;
 
 		const options = {
@@ -270,6 +283,7 @@ export const login = acc => {
 			}
 		};
 
+      //Initialize request to UBCO bookings site login
 		const req = https.request(options, res => {
 			let chunks = "";
 
@@ -278,11 +292,13 @@ export const login = acc => {
 			});
 
 			res.on("end", () => {
+          //Check for #show_my_entries element which is only returned if logged in
 				const validCredentials = ((parse(
 					chunks
 				) as unknown) as HTMLElement).querySelector(
 					"#show_my_entries"
 				);
+          //Return result with cookie and csrf for further actions on the UBCO site
 				resolve({
 					success: validCredentials ? true : false,
 					cookie: res.headers["set-cookie"],
@@ -291,6 +307,7 @@ export const login = acc => {
 			});
 		});
 
+      //Fill out log in form with csrf from session and username/password
 		req.write(
 			qs.stringify({
 				action: "SetName",
@@ -323,6 +340,7 @@ export const postBooking = (request, session, form) =>
 			}
 		};
 
+      //Initialize request to UBCO's site
 		const req = https.request(options, res => {
 			let chunks = "";
 
@@ -332,6 +350,8 @@ export const postBooking = (request, session, form) =>
 
 			res.on("end", () => {
 				resolve({
+            // If the request is successful, the html will have an H1 element
+            // Return { success: true } if the H1 element is found
 					success:
 						((parse(
 							chunks
@@ -342,6 +362,7 @@ export const postBooking = (request, session, form) =>
 			});
 		});
 
+      // Map request to UBCO's booking form
 		req.write(
 			qs.stringify({
 				area: request.area,
@@ -391,6 +412,7 @@ export const deleteBooking = (session, booking) =>
 			}
 		};
 
+      //Initialize request tp UBCO's site
 		const req = https.request(options, res => {
 			res.on("data", () => {
 				return null;
@@ -403,6 +425,7 @@ export const deleteBooking = (session, booking) =>
 			});
 		});
 
+      // Map request to UBCO's 'delete booking' form
 		req.write(
 			qs.stringify({
 				...csrf_token,
@@ -427,6 +450,7 @@ export const fetchBooked = request =>
 			}
 		};
 
+      //Initialize request to UBCO to retrieve user's bookings
 		const req = https.request(options, resp => {
 			let data = "";
 			resp.on("data", chunk => {
@@ -470,6 +494,7 @@ export const fetchBooked = request =>
 			});
 		});
 
+      //Fill form with date from request
 		req.write(
 			qs.stringify({
 				ajax: 1,
@@ -505,3 +530,5 @@ export const fetchBooked = request =>
 
 		req.end();
 	});
+
+
